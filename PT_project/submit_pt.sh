@@ -10,19 +10,19 @@
 #SBATCH --time=59:59:00
 #SBATCH --partition=a100
 
-# --- ¡¾¹Ø¼üĞŞ¸Ä 1¡¿ ---
-# ÈÃSLURMÔÚ³¬Ê±Ç°60Ãë£¬·¢ËÍÒ»¸öÌØÊâµÄ SIGUSR1 ĞÅºÅ£¬¶ø²»ÊÇÄ¬ÈÏµÄ SIGTERM¡£
+# --- ã€å…³é”®ä¿®æ”¹ 1ã€‘ ---
+# è®©SLURMåœ¨è¶…æ—¶å‰60ç§’ï¼Œå‘é€ä¸€ä¸ªç‰¹æ®Šçš„ SIGUSR1 ä¿¡å·ï¼Œè€Œä¸æ˜¯é»˜è®¤çš„ SIGTERMã€‚
 #SBATCH --signal=B:USR1@60
 
 # ----- Email notification settings -----
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=zh1c23@soton.ac.uk
 
-# --- ¶¨ÒåĞÅºÅ´¦Àíº¯Êı ---
+# --- å®šä¹‰ä¿¡å·å¤„ç†å‡½æ•° ---
 
 RESUBMIT_FLAG="/iridisfs/scratch/zh1c23/Qwen/slurm_logs/resubmit_${SLURM_JOB_ID}.flag"
 
-# µ±½ÓÊÕµ½ÎÒÃÇÔ¼¶¨µÄ SIGUSR1 ĞÅºÅÊ±£¬Ö´ĞĞ´Ëº¯Êı
+# å½“æ¥æ”¶åˆ°æˆ‘ä»¬çº¦å®šçš„ SIGUSR1 ä¿¡å·æ—¶ï¼Œæ‰§è¡Œæ­¤å‡½æ•°
 handle_timeout_and_resubmit() {
   echo "--- Caught SIGUSR1: SLURM time limit is approaching! ---"
   echo "--- Creating resubmit flag and submitting the next job. ---"
@@ -31,12 +31,12 @@ handle_timeout_and_resubmit() {
   sleep 5
 }
 
-# --- ¡¾¹Ø¼üĞŞ¸Ä 2¡¿ ---
-# ÈÃ trap Ö»²¶»ñÌØÊâµÄ SIGUSR1 ĞÅºÅ¡£
-# ÕâÑù£¬ÄãÊÖ¶¯ scancel ·¢ËÍµÄÄ¬ÈÏ SIGTERM ĞÅºÅ¾Í²»»á±»Ëü²¶»ñÁË¡£
+# --- ã€å…³é”®ä¿®æ”¹ 2ã€‘ ---
+# è®© trap åªæ•è·ç‰¹æ®Šçš„ SIGUSR1 ä¿¡å·ã€‚
+# è¿™æ ·ï¼Œä½ æ‰‹åŠ¨ scancel å‘é€çš„é»˜è®¤ SIGTERM ä¿¡å·å°±ä¸ä¼šè¢«å®ƒæ•è·äº†ã€‚
 trap 'handle_timeout_and_resubmit' USR1
 
-# --- ÈÎÎñÖ´ĞĞÖ÷Ìå£¨Õâ²¿·ÖÎŞĞè¸Ä¶¯£© ---
+# --- ä»»åŠ¡æ‰§è¡Œä¸»ä½“ï¼ˆè¿™éƒ¨åˆ†æ— éœ€æ”¹åŠ¨ï¼‰ ---
 echo "======================================================"
 echo "Model training task started on: $(date)"
 echo "Running on node: $(hostname)"
@@ -44,7 +44,7 @@ echo "Job ID: $SLURM_JOB_ID"
 echo "Trap for SIGUSR1 is set. Script PID: $$"
 echo "======================================================"
 
-# ³õÊ¼»¯»·¾³
+# åˆå§‹åŒ–ç¯å¢ƒ
 source /iridisfs/scratch/zh1c23/anaconda3/etc/profile.d/conda.sh
 conda activate Qwen
 module load cuda/11.8.0
@@ -73,15 +73,15 @@ wait $pid
 EXIT_CODE=$?
 echo "--- Training process (PID: $pid) finished with Exit Code: ${EXIT_CODE} ---"
 
-# --- ÈÎÎñ½áÊøºóµÄ×îÖÕÅĞ¶Ï ---
+# --- ä»»åŠ¡ç»“æŸåçš„æœ€ç»ˆåˆ¤æ–­ ---
 
 if [ -f "${RESUBMIT_FLAG}" ]; then
     echo "--- Resubmit flag found. This job was terminated due to a timeout. ---"
     echo "--- The next job has already been submitted by the trap handler. ---"
     rm "${RESUBMIT_FLAG}"
 else
-    # Ö»ÓĞÔÚ½Å±¾×Ô¼º½áÊø£¨ÎŞÂÛÊÇ³É¹¦»¹ÊÇÊ§°Ü£©Ê±²Å»á×ßµ½ÕâÀï
-    # ÒòÎªÊÖ¶¯scancel(SIGTERM)²»»á±»trap²¶»ñ£¬Ò²»á×ßµ½ÕâÀï
+    # åªæœ‰åœ¨è„šæœ¬è‡ªå·±ç»“æŸï¼ˆæ— è®ºæ˜¯æˆåŠŸè¿˜æ˜¯å¤±è´¥ï¼‰æ—¶æ‰ä¼šèµ°åˆ°è¿™é‡Œ
+    # å› ä¸ºæ‰‹åŠ¨scancel(SIGTERM)ä¸ä¼šè¢«trapæ•è·ï¼Œä¹Ÿä¼šèµ°åˆ°è¿™é‡Œ
     if [ ${EXIT_CODE} -eq 0 ]; then
         echo "--- Training completed successfully (Exit Code 0). Not resubmitting. ---"
     else
